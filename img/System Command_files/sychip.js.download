@@ -1,0 +1,737 @@
+﻿var splitS0="[;]";
+var splitS1="[,]";
+
+﻿/*
+# Whited by Jingking
+# Only for post and get xml data
+*/
+
+function AjaxAdapter() {
+	// 定义一个成员变量
+	this.XMLHttpReq;
+
+	// 获取浏览器的信息，并创建XMLHTTP对象
+	this.createXMLHttpRequest = function () {
+		if (window.XMLHttpRequest) { //Mozilla 
+			this.XMLHttpReq = new XMLHttpRequest();
+		}
+		else if (window.ActiveXObject) {
+			try {
+				this.XMLHttpReq = new ActiveXObject("Msxml2.XMLHTTP");
+			}
+			catch (e) {
+				try {
+					this.XMLHttpReq = new ActiveXObject("Microsoft.XMLHTTP");
+				}
+				catch (e) { }
+			}
+		}
+	};
+
+	// 初始化Ajax
+	this.InitAjax = function (funcStateChanged) {
+		// 初始化XMLHTTP接口
+		this.createXMLHttpRequest();
+		this.XMLHttpReq.onreadystatechange = funcStateChanged;
+	};
+
+	// 上面定义的 funcStateChanged 回调函数应当以此为架构
+	//function OnXMLHTTPStateChanged()
+	//{
+	//	if(XMLHttpReq.readyState == 4)
+	//	{
+	//		if(XMLHttpReq.status == 200)
+	//		{
+	//			// 这里写具体过程
+	//		}
+	//	}
+	//}
+
+	// 打开URL地址
+	this.AjaxOpenURL = function (urlstr) {
+		this.XMLHttpReq.open("GET", urlstr, true);
+		this.XMLHttpReq.send(null);
+	};
+}
+
+function IsArray(obj)
+
+{
+
+	if (value instanceof Array ||
+
+		(!(value instanceof Object) &&
+
+        (Object.prototype.toString.call((value)) == '[object Array]') ||
+
+        typeof value.length == 'number' &&
+
+        typeof value.splice != 'undefined' &&
+
+        typeof value.propertyIsEnumerable != 'undefined' &&
+
+        !value.propertyIsEnumerable('splice')))
+
+		return true;
+
+	else
+
+		return false;
+
+}
+
+
+function IsStringInChars(checkstr, formatstr)
+{
+	var i_str;
+	for(i_str = 0; i_str < checkstr.length; i_str ++)
+	{
+		if(formatstr.indexOf(checkstr.charAt(i_str)) < 0)
+			return false;
+	}
+
+	return true;
+}
+
+function getCtrlValueById(ctrlid)
+{
+	var htmlobj;
+
+	if ((htmlobj = document.getElementById(ctrlid)) == null)
+		return "";
+
+	if (htmlobj.nodeName.toLowerCase() == "input" && (htmlobj.type.toLowerCase() == "text" || htmlobj.type.toLowerCase() == "hidden"))
+		return htmlobj.value;
+
+	if (htmlobj.nodeName.toLowerCase() == "label")
+		return htmlobj.innerHTML;
+
+	if (htmlobj.nodeName.toLowerCase() == "select")
+		return htmlobj.options[htmlobj.selectedIndex].value
+
+	return "";
+}
+
+
+function SetValuesByJson(jsobj)
+
+{
+
+	var htmlobj, htmlobjs;
+
+	for(var key in jsobj)
+
+	{
+
+		if ((htmlobj = document.getElementById(key)) == null)
+
+			continue;
+
+
+
+		if (htmlobj.nodeName.toLowerCase() == "input" && (htmlobj.type.toLowerCase() == "text" || htmlobj.type.toLowerCase() == "hidden" || htmlobj.type.toLowerCase() == "password"))
+
+		{
+
+			htmlobj.value = jsobj[key];
+
+		}
+
+		if (htmlobj.nodeName.toLowerCase() == "label")
+
+		{
+
+			htmlobj.innerHTML = jsobj[key];
+
+			//htmlobj.innerText = jsobj[key];
+
+			htmlobj.style.display = "";
+
+		}
+
+		else if (htmlobj.nodeName.toLowerCase() == "span" || htmlobj.nodeName.toLowerCase() == "div" || htmlobj.nodeName.toLowerCase() == "textarea" || htmlobj.nodeName.toLowerCase() == "td")
+
+		{
+
+			htmlobj.innerHTML = jsobj[key];
+
+		}
+
+		else if (htmlobj.nodeName.toLowerCase() == "select")
+
+		{
+
+			for (var selidx = 0; selidx < htmlobj.options.length; selidx ++)
+
+			{
+
+				if (htmlobj.options[selidx].value == jsobj[key])
+
+					htmlobj.options[selidx].selected = true;
+
+			}
+
+		}
+
+		else if (htmlobj.nodeName.toLowerCase() == "input" && htmlobj.type.toLowerCase() == "radio")
+
+		{
+
+			htmlobjs = document.getElementsByName(key);
+
+			for (var selidx = 0; selidx < htmlobjs.length; selidx ++)
+
+			{
+
+				if (htmlobjs[selidx].value == jsobj[key])
+
+					htmlobjs[selidx].checked = true;
+
+				else
+
+					htmlobjs[selidx].checked = false;
+
+			}
+
+		}
+
+		else if (htmlobj.nodeName.toLowerCase() == "input" && htmlobj.type.toLowerCase() == "checkbox")
+
+		{
+
+			htmlobjs = document.getElementsByName(key);
+
+			var chkvalues = jsobj[key].split(',');
+
+			var findvalue = false;
+
+			for (var selidx = 0; selidx < htmlobjs.length; selidx++)
+
+			{
+
+				findvalue = false;
+
+				for (var vidx = 0; vidx < chkvalues.length; vidx++)
+
+				{
+
+					if (chkvalues[vidx] == htmlobjs[selidx].value)
+
+					{
+
+						findvalue = true;
+
+						break;
+
+					}
+
+				}
+
+
+
+				if (findvalue)
+
+					htmlobjs[selidx].checked = true;
+
+				else
+
+					htmlobjs[selidx].checked = false;
+
+			}
+
+		}
+
+		else if (htmlobj.nodeName.toLowerCase() == "tr")
+
+		{
+
+			var tempstring = htmlobj.outerHTML;
+
+			var repeatdata = tempstring;
+
+			var outrepeats = "";
+
+
+
+			if (jsobj[key].length == null || jsobj[key].length == 'undefined')
+
+				return;
+
+
+
+			for (var subidx = 0; subidx < jsobj[key].length; subidx ++)
+
+			{
+
+				repeatdata = tempstring;
+
+				for(var subkey in jsobj[key][subidx])
+
+				{
+
+					repeatdata = repeatdata.replace(new RegExp("<!--" + subkey + "-->", "g"), jsobj[key][subidx][subkey]);
+
+				}
+
+				outrepeats += repeatdata;
+
+			}
+
+			if (/msie/.test(navigator.userAgent.toLowerCase())) {
+				$(htmlobj).html(outrepeats);
+			} else {
+				$(htmlobj).prop("outerHTML", outrepeats);
+			}
+			
+			//htmlobj.outerHTML = outrepeats;
+
+		}
+
+	}
+
+}
+
+Array.prototype.remove=function(dx)
+  {
+      if(isNaN(dx)||dx>this.length){return false;}
+          for(var i=0,n=0;i<this.length;i++)
+          {
+              if(this[i]!=this[dx])
+              {
+                  this[n++]=this[i]
+              }
+          }
+      this.length-=1
+  }
+  
+function style_display_on()
+{
+	
+	if (window.ActiveXObject) { // IE
+		return "block";
+	}
+	else if (window.XMLHttpRequest) { // Mozilla, Safari,...
+		return "table-row";
+	}
+}
+
+function disableTextField (field)
+{
+  if(document.all || document.getElementById)
+    field.disabled = true;
+  else {
+    field.oldOnFocus = field.onfocus;
+    field.onfocus = skip;
+  }
+}
+
+function enableTextField (field)
+{
+  if(document.all || document.getElementById)
+    field.disabled = false;
+  else {
+    field.onfocus = field.oldOnFocus;
+  }
+}
+
+function isdigit(I,M)
+{        
+		if(!isdigit(I.value)){
+			alert(' 存在非法字符, 只能输入 [ 0 - 9 ]');
+//			alert(M + errmsg.err28);
+			I.value = I.defaultValue;	
+			return false;
+		}
+	return true;
+}
+function isdigit(str)
+{
+	for(j=0 ; j<str.length; j++){
+		ch = str.charAt(j);
+		if(ch < '0' || ch > '9'){
+//			alert(str +' have illegal characters, must be [ 0 - 9 ]');
+			return false;
+		}
+	}
+	return true;
+}
+
+function valid_range(I,start,end,M)
+{
+	return __valid_range(I, start, end, M, false);
+}
+
+function valid_range_silent(I,start,end)
+{
+	return __valid_range(I, start, end, "", true);
+}
+
+function __valid_range(I, start, end, M, silent)
+{
+	M1 = unescape(M);
+	if(!isdigit(I.value))
+	{
+		if (!silent) alert("存在非法字符, 只能输入 [ 0 - 9 ]");
+		I.value = I.defaultValue;
+		I.focus();
+		return false;
+	}
+	d = parseInt(I.value, 10);
+	if ( !(d<=end && d>=start) )
+	{		
+		if (!silent) alert(M1 + '['+ start + ' - ' + end +']');
+		I.value = I.defaultValue;
+		I.focus();
+		return false;
+	}
+	return true;
+}
+
+function valid_ip(F,M)
+{
+	return __valid_ip(F, M, false);
+}
+
+function valid_ip_silent(F)
+{
+	return __valid_ip(F, "", true);
+}
+
+function __valid_ip(F,M, silent)
+{
+	var m ;
+	m=F.value.split(".");
+	if(m.length!=4)
+	{
+		if (!silent) alert('输入非法，请重新输入!');
+		F.value=F.defaultValue;
+		F.focus();
+		return false;
+	}
+	
+	if (m[0]==0&&m[1]==0&&m[2]==0&&m[3]==0 )
+	{
+		if (!silent) alert('不能设置为 0.0.0.0!');
+		F.value=F.defaultValue;
+		F.focus();
+		return false;
+	}
+	
+	for(i=0;i<4;i++)
+	{
+		if (m[i].length > 3)
+		{
+			if (!silent) alert('输入非法，请重新输入!');
+			F.value=F.defaultValue;
+			F.focus();
+			return false;
+		}
+		if(!isdigit(m[i]))
+		{
+			if (!silent) alert('输入非法, 请重新输入!');
+			F.value=F.defaultValue;
+        		F.focus();
+			return false;
+		}
+		d = parseInt(m[i], 10);	
+		if(d<0||d>255)
+		{
+			if (!silent) alert('输入非法，请重新输入!');
+			F.value=F.defaultValue;
+        		F.focus();
+			return false;
+		}
+	}
+	
+	return true;
+}
+
+var delayAlertTimer = null;
+function deferredAlert(strAlert, millis)
+{
+	if (delayAlertTimer == null)
+	{
+		delayAlertTimer = setTimeout("alert('" + strAlert + "');delayAlertTimer = null;", millis);
+	}
+}
+
+function checkDate(o){ 
+	var a=/^(\d{1,4})(-|\/)(\d{1,2})\2(\d{1,2})/ 
+	if (!a.test(o.value)){ 
+		alert("无效的日期格式!");
+		o.focus();
+		return false ;
+	} 
+	else{}
+		
+	var t=o.value;
+  dataString=t.split("-");
+
+  if(!(2000<=dataString[0]&&dataString[0]<=2100))
+  {
+  	
+  	alert("年份不在有效范围内，年份的有效范围为2000~2100，请重新输入！");
+		o.focus();
+		return false ;
+  	
+  } 
+	return true ;
+} 
+
+function checkreboot(str)
+{
+    if(confirm(str))
+    {
+       return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+function checkIsNull(o,message){
+	if (o.value == "")
+	{
+		alert(message);
+		o.focus();
+		return false;
+	}else{
+		return true;
+	}
+}
+
+function checkMinLength(o,minLength,message){
+	if (o.value.length < minLength )
+	{
+		alert(message);
+		o.focus();
+		return false;
+	}else{
+		return true;
+	}
+}
+
+function checkMaxLength(o,minLength,message){
+	if (o.value.length > minLength )
+	{
+		alert(message);
+		o.focus();
+		return false;
+	}else{
+		return true;
+	}
+}
+
+function checkLength(o,length,message){
+	if (o.value.length != length )
+	{
+		alert(message);
+		o.focus();
+		return false;
+	}else{
+		return true;
+	}
+}
+var ASCIIStrValid = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + 'abcdefghijklmnopqrstuvwxyz' + '0123456789' +  '!$()-.%.:<=>?@[]^_{|}~' + "\'";
+function checkASC(keyval,place)
+{
+         var j, k, flag;
+         for ( k=0; k<keyval.value.length; k++ ){                  
+                   for(j=0;j<ASCIIStrValid.length;j++){
+                            flag = false;
+                            if(keyval.value.charAt(k) ==  ASCIIStrValid.charAt(j)){
+                                     flag = true;
+                                     break;
+                            }
+                   }
+                   if(flag == false){
+                       alert("存在非法字符,请重新输入!");                            
+                            keyval.value=keyval.defaultValue;
+                            keyval.focus();
+                            return false;
+                   }
+         }
+         return true;
+}
+
+
+function checkStaticip(keyval,place)
+{
+         var j, k, flag;
+         for ( k=0; k<keyval.value.length; k++ ){                  
+                   for(j=0;j<ASCIIStrValid.length;j++){
+                            flag = false;
+                            if(keyval.value.charAt(k) ==  ASCIIStrValid.charAt(j)){
+                                     flag = true;
+                                     break;
+                            }
+                   }
+                   if(flag == false){
+                       alert("存在非法字符,请重新输入!");                            
+                            keyval.value=keyval.defaultValue;
+                            keyval.focus();
+                            return false;
+                   }
+         }
+         return true;
+}
+
+var ASCIIStrValid2 = 'ABCDEF' + 'abcdef' + '0123456789';
+function checkHex(keyval,place)
+{
+         var j, k, flag;
+         for ( k=0; k<keyval.value.length; k++ ){                  
+                   for(j=0;j<ASCIIStrValid2.length;j++){
+                            flag = false;
+                            if(keyval.value.charAt(k) ==  ASCIIStrValid2.charAt(j)){
+                                     flag = true;
+                                     break;
+                            }
+                   }
+                   if(flag == false){
+                       alert("存在非法字符,请重新输入!");                            
+                            keyval.value=keyval.defaultValue;
+                            keyval.focus();
+                            return false;
+                   }
+         }
+         return true;
+}
+
+<!--
+//
+// patch of innerText for firefox
+//
+(function (bool) {
+    function setInnerText(o, s) {
+        while (o.childNodes.length != 0) {
+            o.removeChild(o.childNodes[0]);
+        }
+
+        o.appendChild(document.createTextNode(s));
+    }
+
+    function getInnerText(o) {
+        var sRet = "";
+
+        for (var i = 0; i < o.childNodes.length; i ++) {
+            if (o.childNodes[i].childNodes.length != 0) {
+                sRet += getInnerText(o.childNodes[i]);
+            }
+
+            if (o.childNodes[i].nodeValue) {
+                if (o.currentStyle.display == "block") {
+                    sRet += o.childNodes[i].nodeValue + "\n";
+                } else {
+                    sRet += o.childNodes[i].nodeValue;
+                }
+            }
+        }
+
+        return sRet;
+    }
+
+    if (bool) {
+        HTMLElement.prototype.__defineGetter__("currentStyle", function () {
+            return this.ownerDocument.defaultView.getComputedStyle(this, null);
+        });
+
+        HTMLElement.prototype.__defineGetter__("innerText", function () {
+            return getInnerText(this);
+        })
+
+        HTMLElement.prototype.__defineSetter__("innerText", function(s) {
+            setInnerText(this, s);
+        })
+    }
+})(/Firefox/.test(window.navigator.userAgent));
+//-->
+
+
+var share = { 
+data: function (name, value) { 
+var top = window.top, 
+cache = top['_CACHE'] || {}; 
+top['_CACHE'] = cache; 
+return (value != undefined) ? cache[name] = value : cache[name]; 
+}, 
+remove: function (name) { 
+var cache = window.top['_CACHE']; 
+if (cache && cache[name]) delete cache[name]; 
+} 
+};
+
+function initFormSubmitIframe(iframeName, onSubmitted)
+{
+	var iframe = document.getElementById(iframeName);
+	if (iframe == null || iframe == undefined)
+		return;
+
+	if (iframe.attachEvent)
+	{
+		iframe.attachEvent("onload", onSubmitted);
+	}
+	else
+	{
+		iframe.onload = onSubmitted;
+	}
+}
+
+var timerArray = null;
+
+function Timer(_PROC_NAME, _TIMER_ID)
+{
+	this._PROC_NAME = _PROC_NAME;
+	this._TIMER_ID = _TIMER_ID;
+}
+
+function deferredTimerCall(funcStr, delayMillis)
+{
+	try {
+		if (timerArray == null)
+			timerArray = new Array();
+		
+		for (i = 0; i < timerArray.length; i++)
+		{
+			if (timerArray[i]._PROC_NAME == funcStr)
+			{
+				clearTimeout(timerArray[i]._TIMER_ID);
+				timerArray[i]._PROC_NAME = funcStr;
+				timerArray[i]._TIMER_ID = setTimeout(funcStr, delayMillis);
+				return;
+			}
+		}
+		
+		timerArray[i] = new Timer(funcStr, setTimeout(funcStr, delayMillis));
+	} catch (e) {
+		alert("deferredTimerCall出错：\r\n" + e.description);
+	}
+}
+
+// Retrieve param from url
+Request = {
+	QueryString : function(item) {
+		var svalue = location.search.match(new RegExp("[\?\&]" + item + "=([^\&]*)(\&?)", "i"));
+		return svalue ? svalue[1] : svalue;
+	}
+}
+function clearAuthData()
+{
+  	//window.parent.stopConnect();
+    $.ajax({
+        type: "POST",
+        url: "/boafrm/formLogout",
+        cache: false,
+        data: "",
+        success: function(result) {
+        	document.write(result);
+          //window.parent.location.reload();
+        },
+        complete: function(xmlHttpHeader, textStatus) {
+          xmlHttpHeader = null;
+        }
+    });
+ 
+  	return true;
+}
